@@ -1,10 +1,13 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from django.contrib.auth.models import User
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer, CustomerListSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from django.db import transaction
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 # Create your views here.
 
@@ -38,3 +41,29 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+# Test endpoint to show user role information
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_role(request):
+    """
+    Test endpoint to show user role information
+    """
+    user = request.user
+    role = "business_owner" if user.groups.filter(name='Business Owners').exists() else "user"
+    
+    return Response({
+        "username": user.username,
+        "email": user.email,
+        "full_name": f"{user.first_name} {user.last_name}".strip(),
+        "role": role,
+        "groups": [group.name for group in user.groups.all()]
+    })
+
+class CustomerListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CustomerListSerializer
+
+    def get_queryset(self):
+        # Get all users who are not in the Business Owners group
+        return User.objects.exclude(groups__name='Business Owners').order_by('first_name', 'last_name')

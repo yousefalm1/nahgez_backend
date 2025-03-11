@@ -1,0 +1,19 @@
+ERROR 2025-03-06 03:05:56,614 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value
+ERROR 2025-03-06 03:05:57,571 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value
+INFO 2025-03-06 03:06:35,326 admin Generated token for business request 3: M3w4MjRhNWMzMDgwYjJkYmM3YjY5Zjg2YzQ1MGYzMTg5Yw==
+INFO 2025-03-06 03:06:35,326 admin Token data: 3|824a5c3080b2dbc7b69f86c450f3189c
+ERROR 2025-03-06 03:06:36,999 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value
+INFO 2025-03-06 03:07:08,831 admin Generated token for business request 3: M3w4MjRhNWMzMDgwYjJkYmM3YjY5Zjg2YzQ1MGYzMTg5Yw==
+INFO 2025-03-06 03:07:08,832 admin Token data: 3|824a5c3080b2dbc7b69f86c450f3189c
+ERROR 2025-03-06 03:07:10,301 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value
+ERROR 2025-03-06 03:07:11,265 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value
+INFO 2025-03-06 03:07:13,014 admin Generated token for business request 3: M3w4MjRhNWMzMDgwYjJkYmM3YjY5Zjg2YzQ1MGYzMTg5Yw==
+INFO 2025-03-06 03:07:13,014 admin Token data: 3|824a5c3080b2dbc7b69f86c450f3189c
+INFO 2025-03-06 03:07:16,170 admin Generated token for business request 3: M3w4MjRhNWMzMDgwYjJkYmM3YjY5Zjg2YzQ1MGYzMTg5Yw==
+INFO 2025-03-06 03:07:16,171 admin Token data: 3|824a5c3080b2dbc7b69f86c450f3189c
+INFO 2025-03-06 03:07:27,773 admin Generated token for business request 3: M3w4MjRhNWMzMDgwYjJkYmM3YjY5Zjg2YzQ1MGYzMTg5Yw==
+INFO 2025-03-06 03:07:27,773 admin Token data: 3|824a5c3080b2dbc7b69f86c450f3189c
+ERROR 2025-03-06 03:07:32,273 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value
+INFO 2025-03-06 03:10:13,686 admin Generated token for business request 3: M3w4MjRhNWMzMDgwYjJkYmM3YjY5Zjg2YzQ1MGYzMTg5Yw==
+INFO 2025-03-06 03:10:13,687 admin Token data: 3|824a5c3080b2dbc7b69f86c450f3189c
+ERROR 2025-03-06 03:10:14,732 views Error in business_account_setup: cannot access local variable 'logging' where it is not associated with a value

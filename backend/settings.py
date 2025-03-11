@@ -41,16 +41,21 @@ INSTALLED_APPS = [
 
     # third party
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'corsheaders',
+    # 'schedule',  # Removed due to compatibility issues
 
     # apps
     'api',
     'authentication',
+    'businesses',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -125,6 +130,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files (User uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -133,9 +143,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Add REST Framework settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 # JWT settings
@@ -164,63 +179,55 @@ SIMPLE_JWT = {
 
 # Add Jazzmin settings
 JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Nahgez Admin",
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    # title of the window
+    "site_title": "Nahgez Salon Manager",
+    # Title on the login screen
     "site_header": "Nahgez",
-    # Logo to use for your site, must be present in static files, used for brand on top left
-    # "site_logo": "books/img/logo.png",
+    # Logo to use for your site
+    "site_logo": None,
     # Welcome text on the login screen
-    "welcome_sign": "Welcome to Nahgez Admin Panel",
-    
+    "welcome_sign": "Welcome to Nahgez Salon Management System",
     # Copyright on the footer
     "copyright": "Nahgez Ltd",
-    
-    # The model admin to search from the search bar, search bar omitted if excluded
-    "search_model": "auth.User",
-    
+    # The model admin to search from the search bar
+    "search_model": ["businesses.Booking", "auth.User"],
     # Field name on user model that contains avatar ImageField/URLField/Charfield or a callable that receives the user
     "user_avatar": None,
-    
     ############
     # Top Menu #
     ############
     # Links to put along the top menu
     "topmenu_links": [
-        # Url that gets reversed (Permissions can be added)
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        # external url that opens in a new window (Permissions can be added)
-        {"name": "Support", "url": "https://github.com/yourusername/nahgez", "new_window": True},
-        {"model": "auth.User"},
-        {"model": "authentication.UserProfile"},
+        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Today's Bookings", "url": "/admin/businesses/booking/?booking_status=today", "permissions": ["businesses.view_booking"]},
+        {"name": "Upcoming Bookings", "url": "/admin/businesses/booking/?booking_status=this_week", "permissions": ["businesses.view_booking"]},
     ],
-    
     #############
     # Side Menu #
     #############
     # Whether to display the side menu
     "show_sidebar": True,
-    
-    # Whether to aut expand the menu
+    # Whether to auto expand the menu
     "navigation_expanded": True,
-    
     # Custom icons for side menu apps/models
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
-        "authentication.UserProfile": "fas fa-address-card",
+        "businesses": "fas fa-store",
+        "businesses.business": "fas fa-store",
+        "businesses.service": "fas fa-concierge-bell",
+        "businesses.employee": "fas fa-user-tie",
+        "businesses.booking": "fas fa-calendar-check",
+        "businesses.businessrequest": "fas fa-file-signature",
     },
-    
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-    
     #################
     # Related Modal #
     #################
     # Use modals instead of popups
     "related_modal_active": True,
-    
     #############
     # UI Tweaks #
     #############
@@ -228,8 +235,7 @@ JAZZMIN_SETTINGS = {
     "custom_css": None,
     "custom_js": None,
     # Whether to show the UI customizer on the sidebar
-    "show_ui_builder": True,
-    
+    "show_ui_builder": False,
     ###############
     # Change view #
     ###############
@@ -240,6 +246,67 @@ JAZZMIN_SETTINGS = {
     # - collapsible
     # - carousel
     "changeform_format": "horizontal_tabs",
+    # Override app/model names in the side menu
+    "custom_links": {
+        "businesses": [
+            {
+                "name": "Today's Appointments", 
+                "url": "/admin/businesses/booking/?booking_status=today", 
+                "icon": "fas fa-calendar-day"
+            },
+            {
+                "name": "Tomorrow's Appointments", 
+                "url": "/admin/businesses/booking/?booking_status=tomorrow", 
+                "icon": "fas fa-calendar-alt"
+            }
+        ]
+    },
+    # Custom apps (e.g. dictionary containing the key 'label' and an iterable of models)
+    "custom_apps": [
+        {
+            "name": "businesses",
+            "label": "Salon Management",
+            "models": [
+                {
+                    "model": "businesses.booking",
+                    "label": "Appointments"
+                },
+                {
+                    "model": "businesses.business",
+                    "label": "Salons"
+                },
+                {
+                    "model": "businesses.employee",
+                    "label": "Staff"
+                },
+                {
+                    "model": "businesses.service",
+                    "label": "Services"
+                }
+            ],
+            "icon": "fas fa-store"
+        },
+        {
+            "name": "business_requests",
+            "label": "Business Requests",
+            "models": [
+                {
+                    "model": "businesses.businessrequest",
+                    "label": "Registration Requests"
+                }
+            ],
+            "icon": "fas fa-file-signature"
+        }
+    ],
+    # Ordering of apps and models in the side menu
+    "order_with_respect_to": [
+        "businesses.booking", 
+        "businesses.business", 
+        "businesses.employee", 
+        "businesses.service",
+        "business_requests",
+        "auth"
+    ],
 }
 
 # Custom admin title, header and theme color
@@ -248,22 +315,22 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-success",
-    "accent": "accent-teal",
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
     "navbar": "navbar-dark",
     "no_navbar_border": False,
-    "navbar_fixed": False,
+    "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
-    "sidebar_fixed": False,
-    "sidebar": "sidebar-dark-success",
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": False,
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
-    "theme": "default",
+    "theme": "cosmo",
     "dark_mode_theme": None,
     "button_classes": {
         "primary": "btn-primary",
@@ -274,3 +341,32 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+
+# Add CORS settings if needed for NextJS frontend
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://dashboard.nahgez.com",
+]
+CORS_ALLOW_CREDENTIALS = True
+
+# Add these CORS settings
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

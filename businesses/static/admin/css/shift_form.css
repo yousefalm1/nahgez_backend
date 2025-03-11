@@ -1,0 +1,45 @@
+/**
+ * CSS for the Shift admin form
+ */
+
+/* Style for the shift type fieldset */
+.form-row.field-shift_type {
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+/* Style for the day of week field */
+.form-row.field-day_of_week select {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Style for the specific date field */
+.form-row.field-specific_date input {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Style for the time fields */
+.form-row.field-start_time input,
+.form-row.field-end_time input {
+  width: 100%;
+  max-width: 150px;
+}
+
+/* Add some spacing between fieldsets */
+fieldset.module {
+  margin-bottom: 20px;
+}
+
+/* Highlight active shifts */
+tr.is_active-True {
+  background-color: #f0fff0;
+}
+
+/* Highlight inactive shifts */
+tr.is_active-False {
+  background-color: #fff0f0;
+  color: #999;
+}

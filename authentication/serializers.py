@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import UserProfile
@@ -10,10 +10,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     gender = serializers.ChoiceField(choices=['M', 'F', 'O'], required=False, allow_blank=True)
+    role = serializers.ChoiceField(choices=['customer', 'business_owner'], default='customer')
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'password2', 'email', 'full_name', 'phone_number', 'gender')
+        fields = ('username', 'password', 'password2', 'email', 'full_name', 'phone_number', 'gender', 'role')
         extra_kwargs = {
             'email': {'required': True}
         }
@@ -34,6 +35,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('full_name')
         phone_number = validated_data.pop('phone_number')
         gender = validated_data.pop('gender', None)
+        role = validated_data.pop('role', 'customer')
 
         user = User.objects.create(
             username=validated_data['username'],
@@ -43,6 +45,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         
         user.set_password(validated_data['password'])
+        
+        # Assign user to appropriate group based on role
+        if role == 'business_owner':
+            business_owners_group, _ = Group.objects.get_or_create(name='Business Owners')
+            user.groups.add(business_owners_group)
+        
         user.save()
 
         # Create or update user profile
@@ -61,6 +69,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['username'] = self.user.username
         data['email'] = self.user.email
         data['full_name'] = f"{self.user.first_name} {self.user.last_name}".strip()
+        
+        # Add role information
+        if self.user.groups.filter(name='Business Owners').exists():
+            data['role'] = 'business_owner'
+            # Add business ID if the user has a business
+            if hasattr(self.user, 'business'):
+                data['business_id'] = self.user.business.id
+        else:
+            data['role'] = 'customer'
+            
         if hasattr(self.user, 'profile'):
             data['phone_number'] = self.user.profile.phone_number
             data['gender'] = self.user.profile.gender
@@ -70,11 +88,27 @@ class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     phone_number = serializers.CharField(source='profile.phone_number')
     gender = serializers.CharField(source='profile.gender', required=False)
+    role = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'full_name', 'phone_number', 'gender')
+        fields = ('id', 'username', 'email', 'full_name', 'phone_number', 'gender', 'role')
         read_only_fields = ('id',)
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+        
+    def get_role(self, obj):
+        if obj.groups.filter(name='Business Owners').exists():
+            return 'business_owner'
+        return 'customer'
+
+class CustomerListSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'full_name')
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip()

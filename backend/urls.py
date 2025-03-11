@@ -17,9 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api.views import api
+from django.conf import settings
+from django.conf.urls.static import static
+
+# Customize admin site
+admin.site.site_header = "Nahgez Business Management"
+admin.site.site_title = "Nahgez Admin Portal"
+admin.site.index_title = "Welcome to Nahgez Business Management Portal"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", api.urls),  # This connects your API
     path('auth/', include('authentication.urls')),  # New authentication URLs
-]
+    path('businesses/', include('businesses.urls')),  # Business management URLs
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
